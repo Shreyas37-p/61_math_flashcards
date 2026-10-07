@@ -36,12 +36,18 @@ class GameEngine:
         self.generate_new_card()
 
     def generate_new_card(self):
-        self.num_a = random.randint(3, 15)
-        self.num_b = random.randint(2, 12)
-        self.operator = random.choice(["+", "-", "*"])
+        self.operator = random.choice(["+", "-", "*", "/"])
 
-        if self.operator == "-" and self.num_a < self.num_b:
-            self.num_a, self.num_b = self.num_b, self.num_a
+        if self.operator == "/":
+            self.num_b = random.randint(2, 12)
+            quotient = random.randint(2, 15)
+            self.num_a = self.num_b * quotient
+        else:
+            self.num_a = random.randint(3, 15)
+            self.num_b = random.randint(2, 12)
+
+            if self.operator == "-" and self.num_a < self.num_b:
+                self.num_a, self.num_b = self.num_b, self.num_a
 
         self.input_box.clear()
         self.time_remaining = self.time_limit
@@ -54,6 +60,8 @@ class GameEngine:
             return self.num_a - self.num_b
         elif self.operator == "*":
             return self.num_a * self.num_b
+        elif self.operator == "/":
+            return self.num_a // self.num_b
 
         raise ValueError(f"Unsupported operator: {self.operator}")
 
@@ -77,8 +85,8 @@ class GameEngine:
             self.score += points_earned
 
             self.feedback_msg = (
-                f"CORRECT! {self.num_a} "
-                f"{self.operator} {self.num_b} = {expected} "
+                f"CORRECT! {self.num_a} {self.operator} "
+                f"{self.num_b} = {expected} "
                 f"+{points_earned} points "
                 f"(x{self.streak_multiplier} streak)"
             )
