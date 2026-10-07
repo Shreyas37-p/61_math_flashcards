@@ -13,6 +13,10 @@ class GameEngine:
         self.feedback_msg = "Solve the card and press Enter!"
         self.feedback_color = (200, 205, 215)
 
+        self.time_limit = 10.0
+        self.time_remaining = self.time_limit
+        self.last_update_time = pygame.time.get_ticks()
+
         self.num_a = 0
         self.num_b = 0
         self.operator = "+"
@@ -37,6 +41,8 @@ class GameEngine:
             self.num_a, self.num_b = self.num_b, self.num_a
 
         self.input_box.clear()
+        self.time_remaining = self.time_limit
+        self.last_update_time = pygame.time.get_ticks()
 
     def compute_expected_answer(self):
         if self.operator == "+":
@@ -83,7 +89,23 @@ class GameEngine:
                 self.submit_answer()
 
     def update(self):
-        pass
+        current_time = pygame.time.get_ticks()
+        elapsed_seconds = (
+            current_time - self.last_update_time
+        ) / 1000.0
+
+        self.last_update_time = current_time
+        self.time_remaining -= elapsed_seconds
+
+        if self.time_remaining <= 0:
+            self.time_remaining = 0
+
+            expected = self.compute_expected_answer()
+            self.total_attempts += 1
+            self.feedback_msg = f"TIME OUT! The answer was {expected}."
+            self.feedback_color = (240, 175, 40)
+
+            self.generate_new_card()
 
     def render(self, screen):
         screen.fill((25, 29, 37))
@@ -150,6 +172,51 @@ class GameEngine:
                 card_rect.centery - card_surf.get_height() // 2
             )
         )
+
+        timer_bg_rect = pygame.Rect(
+            self.width // 2 - 130,
+            215,
+            260,
+            10
+        )
+
+        pygame.draw.rect(
+            screen,
+            (70, 75, 85),
+            timer_bg_rect,
+            border_radius=5
+        )
+
+        timer_ratio = max(
+            0,
+            self.time_remaining / self.time_limit
+        )
+
+        timer_width = int(
+            timer_bg_rect.width * timer_ratio
+        )
+
+        if timer_ratio > 0.5:
+            timer_color = (80, 210, 110)
+        elif timer_ratio > 0.25:
+            timer_color = (240, 190, 60)
+        else:
+            timer_color = (240, 75, 75)
+
+        if timer_width > 0:
+            timer_rect = pygame.Rect(
+                timer_bg_rect.x,
+                timer_bg_rect.y,
+                timer_width,
+                timer_bg_rect.height
+            )
+
+            pygame.draw.rect(
+                screen,
+                timer_color,
+                timer_rect,
+                border_radius=5
+            )
 
         self.input_box.render(screen)
 
