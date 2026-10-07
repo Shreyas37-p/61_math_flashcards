@@ -10,6 +10,9 @@ class GameEngine:
 
         self.score = 0
         self.total_attempts = 0
+        self.streak = 0
+        self.streak_multiplier = 1
+
         self.feedback_msg = "Solve the card and press Enter!"
         self.feedback_color = (200, 205, 215)
 
@@ -67,14 +70,23 @@ class GameEngine:
         self.total_attempts += 1
 
         if user_answer == expected:
-            self.score += 1
+            self.streak += 1
+            self.streak_multiplier = self.streak
+
+            points_earned = self.streak_multiplier
+            self.score += points_earned
+
             self.feedback_msg = (
                 f"CORRECT! {self.num_a} "
-                f"{self.operator} {self.num_b} = {expected}"
+                f"{self.operator} {self.num_b} = {expected} "
+                f"+{points_earned} points "
+                f"(x{self.streak_multiplier} streak)"
             )
             self.feedback_color = (80, 230, 110)
             self.generate_new_card()
         else:
+            self.streak = 0
+            self.streak_multiplier = 1
             self.feedback_msg = f"WRONG! Expected {expected}."
             self.feedback_color = (240, 75, 75)
             self.input_box.clear()
@@ -102,6 +114,9 @@ class GameEngine:
 
             expected = self.compute_expected_answer()
             self.total_attempts += 1
+            self.streak = 0
+            self.streak_multiplier = 1
+
             self.feedback_msg = f"TIME OUT! The answer was {expected}."
             self.feedback_color = (240, 175, 40)
 
@@ -136,11 +151,24 @@ class GameEngine:
             )
         )
 
+        streak_surf = self.font_hud.render(
+            f"Streak: {self.streak}  Multiplier: x{self.streak_multiplier}",
+            True,
+            (160, 210, 255)
+        )
+        screen.blit(
+            streak_surf,
+            (
+                self.width // 2 - streak_surf.get_width() // 2,
+                78
+            )
+        )
+
         card_rect = pygame.Rect(
             self.width // 2 - 130,
-            95,
+            105,
             260,
-            110
+            100
         )
 
         pygame.draw.rect(
